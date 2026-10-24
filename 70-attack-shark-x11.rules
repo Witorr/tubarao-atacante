@@ -1,0 +1,2 @@
+# Attack Shark X11, receptor USB 2.4 GHz; acesso pela sessão local ativa.
+SUBSYSTEM=="hidraw", KERNEL=="hidraw*", ATTRS{idVendor}=="1d57", ATTRS{idProduct}=="fa60", TAG+="uaccess"

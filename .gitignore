@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.log
+*.gpr
+*.rep/
+profiles.json
+appearance.json
+before-*.json
+assets/*.png
+assets/led-masks.json
+TESTES.txt

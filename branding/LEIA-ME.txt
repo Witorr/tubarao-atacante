@@ -1,0 +1,3 @@
+Logo Juliet colorida transparente, escolhida do pacote fornecido pelo usuário.
+SVG e PNG originais preservados. A versão de cabeçalho é apenas redimensionada com proporção preservada.
+Ícone de janela: PNG quadrado de 48 px do mesmo pacote. Nenhuma dependência adicional em execução.
