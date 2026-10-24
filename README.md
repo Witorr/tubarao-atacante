@@ -3,7 +3,7 @@
 
 # Tubarão Atacante
 
-**Seu Attack Shark X11 no Linux.** Configurador comunitário com interface Qt 6, linguagem visual Material e tema Dracula.
+**Seu Attack Shark X11 no Linux.** Configurador comunitário com interface Qt 6, linguagem visual Material e tema personálzavel.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Qt](https://img.shields.io/badge/Qt-6%20%2F%20PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
