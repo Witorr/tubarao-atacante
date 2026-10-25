@@ -14,7 +14,7 @@
 [Instalação](#-instalando) · [Uso](#-usando) · [Contribuir](CONTRIBUTING.md) · [Licença](#-licença)
 </div>
 
-![Interface com dados simulados](docs/interface.png)
+![Transição animada entre os temas claro e escuro, com dados simulados](preview-theme-transition.gif)
 
 > Projeto independente, sem vínculo ou endosso da Attack Shark. Desenvolvido por engenharia reversa para permitir que a comunidade configure o X11 no Linux.
 
@@ -49,8 +49,6 @@ git clone https://github.com/Witorr/tubarao-atacante.git
 cd tubarao-atacante
 /usr/bin/python attack_shark_x11.py
 ```
-
-O endereço acima é o destino previsto do repositório; só estará disponível após sua publicação.
 
 Para configurar permissões em uma instalação nova:
 
