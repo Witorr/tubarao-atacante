@@ -2,21 +2,21 @@
 
 # Tubarão Atacante · Attack Shark X11 para Linux
 
-**Versão 0.6.0 — interface Qt 6, animação de tema e antialiasing — CachyOS / Arch Linux, receptor USB 2.4 GHz `1D57:FA60`.**
+**Versão 0.7.0 — interface Qt 6, animação de tema e antialiasing — CachyOS / Arch Linux, receptor USB 2.4 GHz `1D57:FA60`.**
 
-Configurador nativo em Python com Qt 6/PySide6 com quatro telas: **Mouse**, **DPI**, **Iluminação** e **Perfis**. Inclui os sete modos dos anexos, velocidade, cor global, cores por estágio e uma prévia animada local. A edição de DPI preserva o modo de iluminação já escolhido.
+Configurador nativo em Python com Qt 6/PySide6 com cinco abas: **Mouse**, **DPI**, **Iluminação**, **Perfis** e **Macros**. Inclui os sete modos dos anexos, velocidade, cor global, cores por estágio e uma prévia animada local. A edição de DPI preserva o modo de iluminação já escolhido.
 
 ## Interface e identidade
 
 Nome do software: **Tubarão Atacante**. A marca mantém a mascote enviada pelo usuário e usa **Google Sans** na tipografia do nome. A fonte oficial e sua licença OFL estão incluídas; não é necessário instalá-la para abrir o programa. O Qt carrega a fonte apenas neste processo. O nome no cabeçalho também possui uma versão renderizada para preservar sua aparência.
 
-A imagem do mouse é o recurso original do software Attack Shark X11. Seu hash coincide com o inventário da engenharia reversa anterior. A imagem inclui a numeração vermelha original dos botões; essa numeração é ilustrativa nesta versão. Os detalhes da extração e da análise do XML original estão em `research/INTERFACE.md`.
+A edição pública usa uma ilustração própria. Recursos originais opcionais podem ser mantidos localmente, conforme [assets/README.md](../assets/README.md). Na aba Macros, um mapa interativo identifica os cinco botões para atribuições locais, sem alterar o dispositivo.
 
 Os seis estágios de DPI agora usam sliders verticais, campos de valor, amostras de cor e seleção do estágio ativo, seguindo a organização dos controles originais. Foram removidas as caixas individuais que fragmentavam as linhas. A largura útil é limitada a 1280 px e centralizada em monitores maiores.
 
 As abas **Mouse**, **DPI** e **Iluminação** mantêm cartões e estados de foco Material 3. Os valores de DPI, polling e iluminação aparecem em uma faixa compacta. Os botões aceitam Tab, Enter e Espaço. Os sliders aceitam setas, Home e End; nos controles verticais, cima aumenta e baixo diminui o DPI.
 
-A aba Perfis foi adicionada nesta etapa. Botões laterais e macros entram na etapa seguinte, após a validação dos perfis. Os codecs HID e os relatórios usados continuam os mesmos.
+A aba Macros permite gravar teclado, cliques e rolagens em uma área dedicada, editar eventos/atrasos e salvar atribuições locais aos cinco botões. Ainda não executa macros nem grava as atribuições no dispositivo. Consulte [o fluxo atual no README](../README.md#macros-gravar-revisar-e-atribuir) e [a documentação técnica](MACROS.md). Os codecs HID e os relatórios usados continuam os mesmos.
 
 ## Abrir no CachyOS / Arch
 
@@ -43,6 +43,8 @@ A regra udev já instalada continua válida. Execute como usuário normal. Os pe
 Referência do pacote: https://archlinux.org/packages/extra/x86_64/pyside6/
 
 ## Tema e controles visuais
+
+Os campos de repetições e atraso usam controles numéricos com desenho antialiasing, botões −/+ e foco visível. Aceitam digitação, setas do teclado e pressionamento contínuo dos botões, respeitando os limites. O ícone de janela/aplicação foi renderizado do SVG original em 256×256 px com fundo transparente, sem as faixas brancas do PNG anterior.
 
 O controle de sol/lua no topo é um componente nativo `ThemeSwitch`, com movimento deslizante de 360 ms inspirado no vídeo enviado. O fundo, os cartões, os textos, os campos e as cores de destaque também fazem uma transição gradual sincronizada com o controle. Uma nova mudança antes do fim da animação parte do estado visual atual, sem saltar para o início. Clique nele, use Espaço ou Enter para alternar claro/escuro. O vídeo não é reproduzido dentro do aplicativo.
 
@@ -154,7 +156,7 @@ O acesso entre instâncias desta aplicação é serializado com um lock local. E
 
 ## Validação e limites
 
-- 98 testes automatizados de protocolo, transações e armazenamento de perfis passaram.
+- 141 testes automatizados de protocolo, transações, perfis, macros, gravação e interface passaram.
 - As quatro telas foram renderizadas e inspecionadas com Qt 6.12; foram conferidas também em janelas de 1000×760 e 1920×1000 e com renderização HiDPI de fator 2.
 - Os sete modos foram acionados pela interface com um receptor simulado. Seletor de cores, controles condicionais e posições dos sliders também foram verificados. Os novos sliders foram exercitados por eventos de mouse e teclado, incluindo o bloqueio quando desabilitados; a edição local não alterou os frames do receptor.
 - As consultas, o polling e a interpretação dos estágios foram validados pelo usuário no X11. A versão anterior também recebeu confirmação por releitura de perfil e iluminação.
@@ -166,7 +168,7 @@ QT_QPA_PLATFORM=offscreen /usr/bin/python -m unittest discover -v
 
 As imagens `preview-overview.png`, `preview-dpi.png` e `preview-lighting.png` e `preview-profiles.png` mostram a aplicação real com dados simulados para revisão visual. Não são capturas do dispositivo do usuário. `preview-theme-transition.gif` é uma captura da transição real da interface Qt, em ambas as direções; não é o vídeo de referência embutido no programa.
 
-Esta etapa não implementa Bluetooth, cabo USB, macros ou bateria. Também não envia firmware, comandos de pareamento ou reset.
+Esta etapa não implementa Bluetooth, cabo USB, execução de macros ou bateria. Também não envia firmware, comandos de pareamento ou reset.
 
 ## Permissões em uma instalação nova
 

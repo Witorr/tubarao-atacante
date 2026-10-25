@@ -8,6 +8,7 @@ venv/
 *.rep/
 profiles.json
 appearance.json
+macros.json
 before-*.json
 assets/*.png
 assets/led-masks.json

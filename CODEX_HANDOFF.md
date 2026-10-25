@@ -1,11 +1,11 @@
 # Continuidade no Codex
 
-Estado base: v0.6.0, interface Qt 6, quatro telas, transição de tema, antialiasing, perfis locais e consultas/gravações HID validadas por testes. A versão pública adiciona ilustração própria quando não há recursos proprietários locais.
+Estado atual: v0.7.0, interface Qt 6 com cinco abas, transição de tema, perfis locais e consultas/gravações HID existentes. A aba Macros oferece gravação local de teclado/mouse, revisão de eventos, modos de execução como configuração e atribuição local aos cinco botões. Há conclusão assistida de atalhos incompletos, campos numéricos com −/+ e ícone transparente corrigido. A versão pública usa ilustração própria quando não há recursos opcionais locais.
 
-Abra este repositório no Codex e use o pedido abaixo:
+As macros e suas atribuições ainda não são executadas no Linux nem gravadas no dispositivo. Os modos hold/toggle/repeat são apenas configurações locais. O gravador recebe entradas somente dentro da área indicada. Não apresentar essas funções como execução validada no X11.
 
-> Leia AGENTS.md, README.md e a suíte de testes. Faça a próxima etapa do Tubarão Atacante: pesquisa e implementação incremental da personalização dos dois botões laterais do Attack Shark X11, preparando a evolução para macros. Primeiro identifique o formato do protocolo a partir de fontes e evidências disponíveis; não invente bytes de comando. Preserve backup, validação, releitura e dados dos perfis existentes. Teste com receptor simulado e identifique a validação física necessária. Não publique recursos proprietários. Apresente a etapa para validação antes de ampliar o escopo.
+Próxima etapa: obter evidências das rotinas de macros e de associação aos botões na engenharia reversa, mapear o formato e implementar codecs offline antes de habilitar escrita. Preserve backup, validação, releitura e compatibilidade dos perfis e macros existentes. Não inventar bytes, offsets ou limites de firmware.
 
-Os arquivos privados da instalação Windows, o projeto Ghidra e o hardware não acompanham o repositório. Se forem necessários para a próxima tarefa, solicitar apenas os recursos específicos ausentes; não assumir acesso à máquina Windows.
+Leia `AGENTS.md`, `README.md`, `docs/MACROS.md` e os testes antes de alterar o protocolo. Os arquivos privados da instalação Windows e o projeto Ghidra não acompanham o repositório. Não publicar esses recursos. A suíte de 141 testes usa receptor e entradas simulados; a execução física de macros continua pendente.
 
-A pasta local já está inicializada com git. Publicação e seleção do repositório no Codex ainda precisam ser concluídas na conta do mantenedor. Este documento não cria uma sessão remota do Codex automaticamente.
+Repositório: https://github.com/Witorr/tubarao-atacante (branch principal `main`).

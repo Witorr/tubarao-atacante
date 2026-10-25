@@ -18,7 +18,7 @@ import time
 
 import x11_protocol as proto
 
-VERSION = '0.6.0'
+VERSION = '0.7.0'
 
 LIGHTING_MODES = {
     'off': (0x00, 'Desligado', 'LED Off'),

@@ -6,7 +6,7 @@ try:
  from PySide6.QtCore import Qt,QPoint
  from PySide6.QtGui import QColor,QPalette
  from PySide6.QtTest import QTest
- from PySide6.QtWidgets import QApplication
+ from PySide6.QtWidgets import QApplication,QMessageBox
  from x11_ui import ModernApplication,Button
  HAS_QT=True
 except ImportError:HAS_QT=False
@@ -68,3 +68,102 @@ class QtInterfaceTests(unittest.TestCase):
   button=self.w.nav['dpi'];self.w.show_page('dpi');QTest.qWait(30);image=button.grab().toImage()
   colors={image.pixelColor(x,y).rgb() for y in range(1,12) for x in range(1,14)}
   self.assertGreater(len(colors),5)
+ def test_macros_work_offline_without_receiver_access(self):
+  page=self.w.macros;self.w.show_page('macros')
+  self.assertFalse(self.w.loaded)
+  with patch.object(self.backend,'status',side_effect=AssertionError('hardware access')):
+   page.name.setText('Copiar');page.add({'action':'press','key':'C'})
+   with self.assertRaises(ValueError):page.save()
+   page.add({'action':'wait','ms':100});page.add({'action':'release','key':'C'})
+   item=page.save();self.assertEqual(len(page.store.list()),1)
+   page.new();page.list.setCurrentRow(0)
+   self.assertEqual(page.macro_id,item['id']);self.assertEqual(len(page.steps),3)
+  self.assertFalse(self.receiver.writes);self.assertFalse(self.w.loaded)
+ def test_macro_reorder_remove_and_cancel_preserve_draft(self):
+  page=self.w.macros;page.name.setText('Teste')
+  page.add({'action':'press','key':'C'});page.add({'action':'release','key':'C'});page.save()
+  page.table.selectRow(1);page.move(-1);self.assertEqual(page.steps[0]['action'],'release')
+  page.remove_step();self.assertEqual(len(page.steps),1)
+  with patch('x11_macro_ui.QMessageBox.question',return_value=QMessageBox.StandardButton.Cancel):
+   page.new();self.assertEqual(len(page.steps),1)
+   self.assertFalse(self.w.close())
+  page.dirty=False
+ def test_button_map_click_and_keyboard_assign_saved_macros(self):
+  from PySide6.QtWidgets import QDialog
+  from test_macros import MACRO
+  self.w.show_page('macros');view=self.w.macros.assignments
+  item=view.store.save('Minha sequência',MACRO)
+  def choose(dialog):
+   dialog.macros.setCurrentRow(0);dialog.assign_selected();return QDialog.DialogCode.Accepted
+  with patch('x11_button_map.AssignmentDialog.exec',new=choose):
+   QTest.mouseClick(view.map.calls[4],Qt.MouseButton.LeftButton)
+  self.assertEqual(view.store.assignments()['4'],item['id'])
+  with patch('x11_button_map.AssignmentDialog.exec',new=choose):
+   view.map.calls[5].setFocus();QTest.keyClick(view.map.calls[5],Qt.Key.Key_Space)
+  self.assertEqual(view.store.assignments()['5'],item['id']);self.assertFalse(self.receiver.writes)
+ def test_number_hotspot_cancel_preserves_bindings(self):
+  from PySide6.QtWidgets import QDialog
+  self.w.show_page('macros');view=self.w.macros.assignments
+  before=view.store.assignments();_,points=view.map.geometry_data()
+  with patch('x11_button_map.AssignmentDialog.exec',return_value=QDialog.DialogCode.Rejected) as dialog:
+   QTest.mouseClick(view.map,Qt.MouseButton.LeftButton,pos=points[3].toPoint())
+  dialog.assert_called_once();self.assertEqual(before,view.store.assignments())
+ def test_button_map_and_editor_fit_minimum_window(self):
+  self.w.resize(1000,760);self.w.show_page('macros');QTest.qWait(30)
+  scene=self.w.macros.assignments.map
+  for a,b in ((1,4),(4,5),(2,3)):
+   self.assertFalse(scene.calls[a].geometry().intersects(scene.calls[b].geometry()))
+  for call in scene.calls.values():self.assertTrue(scene.rect().contains(call.geometry()))
+  self.w.macros.show_view(1);QTest.qWait(30)
+  editor=self.w.macros
+  self.assertLess(editor.table.geometry().bottom(),editor.record_button.parentWidget().geometry().top())
+
+ def test_create_from_map_record_save_and_assign_without_dropdown(self):
+  from PySide6.QtWidgets import QDialog,QComboBox
+  from test_macros import MACRO
+  from x11_button_map import AssignmentDialog
+  self.w.show_page('macros');page=self.w.macros
+  dialog=AssignmentDialog(4,[],None)
+  self.assertEqual(dialog.findChildren(QComboBox),[]);dialog.close()
+  def create(dialog):dialog.create();return QDialog.DialogCode.Accepted
+  with patch('x11_button_map.AssignmentDialog.exec',new=create):
+   QTest.mouseClick(page.assignments.map.calls[4],Qt.MouseButton.LeftButton)
+  self.assertEqual(page.views.currentIndex(),1);self.assertEqual(page.target_button,4)
+  self.assertEqual(page.findChildren(QComboBox),[])
+  page.name.setText('Minha gravação');page.insert_recording(MACRO['steps'])
+  page.mode_buttons['hold'].setChecked(True);self.assertEqual(page.data()['mode'],'hold')
+  item=page.save();self.assertEqual(page.store.assignments()['4'],item['id'])
+  self.assertEqual(page.store.list()[0]['macro']['mode'],'hold');self.assertFalse(self.receiver.writes)
+ def test_edit_delay_and_cancel_recording_preserve_draft(self):
+  from PySide6.QtWidgets import QDialog
+  page=self.w.macros;page.add({'action':'wait','ms':100});page.table.selectRow(0)
+  with patch('x11_macro_ui.QInputDialog.getInt',return_value=(500,True)):page.edit_event()
+  self.assertEqual(page.steps[0]['ms'],500)
+  before=list(page.steps)
+  with patch('x11_macro_ui.RecordingDialog.exec',return_value=QDialog.DialogCode.Rejected):page.record()
+  self.assertEqual(before,page.steps);page.dirty=False
+ def test_save_copy_missing_releases_offers_completion_and_updates_map(self):
+  self.w.show_page('macros');page=self.w.macros;page.begin_for_button(4);page.name.setText('Copiar')
+  page.add({'action':'press','key':'LeftCtrl'});page.add({'action':'press','key':'C'})
+  with patch('x11_macro_ui.QMessageBox.question',return_value=QMessageBox.StandardButton.Yes) as confirmation:
+   QTest.mouseClick(page.save_button,Qt.MouseButton.LeftButton)
+  confirmation.assert_called_once()
+  self.assertEqual(len(page.store.list()),1);self.assertEqual(page.views.currentIndex(),0)
+  item=page.store.list()[0];self.assertEqual(page.store.assignments()['4'],item['id'])
+  self.assertEqual([s['action'] for s in item['macro']['steps']],['press','press','release','release'])
+  self.assertEqual(page.assignments.map.calls[4].assignment,'Copiar')
+  self.assertFalse(page.dirty);self.assertFalse(self.receiver.writes)
+ def test_cancel_shortcut_completion_keeps_draft_and_assignment_empty(self):
+  page=self.w.macros;page.begin_for_button(4);page.name.setText('Copiar')
+  page.add({'action':'press','key':'LeftCtrl'});page.add({'action':'press','key':'C'})
+  before=page.data()
+  with patch('x11_macro_ui.QMessageBox.question',return_value=QMessageBox.StandardButton.Cancel):page.request_save()
+  self.assertEqual(before,page.data());self.assertEqual(page.store.list(),[])
+  self.assertIsNone(page.store.assignments()['4']);page.dirty=False
+ def test_save_failure_shows_error_and_preserves_draft(self):
+  from test_macros import MACRO
+  page=self.w.macros;page.name.setText('Teste');page.insert_recording(MACRO['steps'])
+  with patch.object(page.store,'save',side_effect=OSError('Disco cheio')),patch('x11_macro_ui.QMessageBox.warning') as warning:
+   page.request_save()
+  warning.assert_called_once();self.assertTrue(page.dirty)
+  self.assertIn('Macro não salva',self.w.message.text());self.assertEqual(page.store.list(),[]);page.dirty=False

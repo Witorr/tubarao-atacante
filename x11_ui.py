@@ -9,7 +9,7 @@ from PySide6.QtCore import (Qt,QObject,Signal,QTimer,QVariantAnimation,QEasingCu
 from PySide6.QtGui import QColor,QPainter,QPen,QFont,QFontDatabase,QPalette,QImage,QIcon,QPixmap
 from PySide6.QtWidgets import (QApplication,QMainWindow,QWidget,QFrame,QLabel,QPushButton,QAbstractButton,
  QHBoxLayout,QVBoxLayout,QGridLayout,QStackedWidget,QSlider,QLineEdit,QRadioButton,QButtonGroup,
- QListWidget,QTextEdit,QScrollBar,QInputDialog,QMessageBox,QColorDialog,QSizePolicy,QDialog,QDialogButtonBox)
+ QListWidget,QTextEdit,QScrollBar,QComboBox,QSpinBox,QTableWidget,QHeaderView,QInputDialog,QMessageBox,QColorDialog,QSizePolicy,QDialog,QDialogButtonBox)
 from x11_appearance import LIGHT,DARK,load_preference,save_preference,system_theme
 from x11_profiles import ProfileStore,validate_settings
 
@@ -64,9 +64,9 @@ class Theme(QObject):
   # Qt stylesheets resolve palette() when polished. Refresh only the native
   # input/scroll widgets, rather than rebuilding the stylesheet or the window.
   for widget in application.allWidgets():
-   if isinstance(widget,(QLineEdit,QTextEdit,QListWidget,QRadioButton,QScrollBar)) or widget.isWindow():
+   if isinstance(widget,(QLineEdit,QTextEdit,QListWidget,QRadioButton,QScrollBar,QComboBox,QSpinBox,QTableWidget,QHeaderView)) or widget.isWindow():
     widget.setPalette(p)
-    if isinstance(widget,(QLineEdit,QTextEdit,QListWidget,QScrollBar)):
+    if isinstance(widget,(QLineEdit,QTextEdit,QListWidget,QScrollBar,QComboBox,QSpinBox,QTableWidget,QHeaderView)):
      widget.style().unpolish(widget);widget.style().polish(widget);widget.setPalette(p)
   self.changed.emit()
  def apply(self,mode,animate=True):
@@ -250,17 +250,17 @@ class ModernApplication(QMainWindow):
   self.supported=sorted({dpi for dpi,code in proto._DPI_TABLE if proto.decode_dpi_candidates(code,int(10100<=dpi<=12000 or 20100<=dpi<=22000),dpi>12000,dpi>12000)==[dpi]})
   self.dpi_indices={value:i for i,value in enumerate(self.supported)}
   self.setWindowTitle('Tubarão Atacante · Attack Shark X11');self.resize(1120,820);self.setMinimumSize(1000,760)
-  self.setWindowIcon(QIcon(str(ROOT/'branding/juliet-icon.png')))
+  icon=QIcon(str(ROOT/'branding/juliet-icon.png'));self.setWindowIcon(icon);QApplication.instance().setWindowIcon(icon)
   QFontDatabase.addApplicationFont(str(ROOT/'fonts/GoogleSans.ttf'));QApplication.instance().setFont(QFont('Google Sans',10))
   self.theme=Theme(self);self.theme.changed.connect(self.update_theme)
-  QApplication.instance().setStyleSheet('''QLineEdit,QSpinBox,QComboBox {background:palette(base);border:1px solid palette(mid);border-radius:8px;padding:6px;selection-background-color:palette(highlight);} QListWidget,QTextEdit {background:transparent;border:0;} QListWidget::item {padding:7px;border-radius:8px;} QListWidget::item:selected {background:palette(button);color:palette(highlight);} QScrollBar:vertical {background:transparent;width:12px;margin:2px;} QScrollBar::handle:vertical {background:palette(mid);border-radius:4px;min-height:24px;margin:0 2px;} QScrollBar::handle:vertical:hover {background:palette(highlight);} QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;} QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical {background:transparent;} QDialog,QMessageBox {background:palette(window);} QDialog QPushButton {background:palette(button);color:palette(button-text);border:0;border-radius:16px;padding:9px 18px;}''')
+  QApplication.instance().setStyleSheet('''QLineEdit,QSpinBox,QComboBox {background:palette(base);border:1px solid palette(mid);border-radius:8px;padding:6px;selection-background-color:palette(highlight);} QListWidget,QTextEdit {background:transparent;border:0;} QTableWidget {background:palette(base);color:palette(text);border:1px solid palette(mid);border-radius:8px;selection-background-color:palette(highlight);selection-color:palette(highlighted-text);} QHeaderView::section {background:palette(button);color:palette(button-text);border:0;padding:4px;} QListWidget::item {padding:7px;border-radius:8px;} QListWidget::item:selected {background:palette(button);color:palette(highlight);} QScrollBar:vertical {background:transparent;width:12px;margin:2px;} QScrollBar::handle:vertical {background:palette(mid);border-radius:4px;min-height:24px;margin:0 2px;} QScrollBar::handle:vertical:hover {background:palette(highlight);} QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;} QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical {background:transparent;} QDialog,QMessageBox {background:palette(window);} QDialog QPushButton {background:palette(button);color:palette(button-text);border:0;border-radius:16px;padding:9px 18px;}''')
   shell=Card(self.theme,0,'BG');self.setCentralWidget(shell);outer=column(shell,0,0)
   header=Card(self.theme,0,'SIDE');outer.addWidget(header);head=QHBoxLayout(header);head.setContentsMargins(24,12,24,10)
   self.logo=BrandImage('juliet-header',self.theme);head.addWidget(self.logo);names=QWidget();names_l=column(names,0,3);self.wordmark=BrandImage('wordmark',self.theme);names_l.addWidget(self.wordmark);names_l.addWidget(Text('ATTACK SHARK X11',self.theme,8,role='MUTED'));head.addWidget(names);head.addStretch()
   self.connection=Text('○  Desconectado',self.theme,9,role='MUTED');head.addWidget(self.connection)
   self.connect=Button('Conectar',self.theme,self.refresh,True);head.addWidget(self.connect)
   navigation=Card(self.theme,0,'SIDE');outer.addWidget(navigation);nav_l=QHBoxLayout(navigation);nav_l.setContentsMargins(24,2,24,12)
-  for key,title in [('overview','Mouse'),('dpi','DPI'),('lighting','Iluminação'),('profiles','Perfis')]:
+  for key,title in [('overview','Mouse'),('dpi','DPI'),('lighting','Iluminação'),('profiles','Perfis'),('macros','Macros')]:
    b=Button(title,self.theme,lambda checked=False,k=key:self.show_page(k));b.flat=True;nav_l.addWidget(b);self.nav[key]=b
   nav_l.addStretch();self.theme_caption=Text('',self.theme,8,role='MUTED');nav_l.addWidget(self.theme_caption)
   self.switch=ThemeSwitch(self.theme);self.switch.clicked.connect(lambda dark:self.select_theme('dark' if dark else 'light'));nav_l.addWidget(self.switch)
@@ -275,6 +275,8 @@ class ModernApplication(QMainWindow):
   footer_widget=QWidget();footer=row(footer_widget);self.message=Text('Conecte o mouse para carregar as configurações.',self.theme,9,role='MUTED');footer.addWidget(self.message,1);footer.addWidget(Button('Diagnóstico',self.theme,self.show_details));body.addWidget(footer_widget)
   self.stage_group=QButtonGroup(self);self.dpi_entries=[];self.dpi_sliders=[];self.color_buttons=[];self.colors=['#94a5ba']*6;self.polling_value=None;self.mode_key=None;self.global_color='#94a5ba';self.speed_value=3
   self.build_overview();self.build_dpi();self.build_lighting();self.build_profiles()
+  from x11_macro_ui import MacroPage
+  self.macros=MacroPage(self);self.pages['macros']=self.macros;self.stack.addWidget(self.macros)
   self.show_page('overview');self.theme.publish();self.switch.setChecked(self.theme.target=='dark');self.switch.position=float(self.switch.isChecked());self.switch.anim.stop()
   self.reload_profiles();self.set_enabled()
  def reg(self,widget):self.controls.append(widget);return widget
@@ -344,6 +346,7 @@ class ModernApplication(QMainWindow):
  def select_theme(self,mode):self.guard(lambda:self.theme.select(mode))
  def show_page(self,key):
   headings={'overview':('Configurações do mouse','Ajuste seu X11 com tudo no lugar.'),'dpi':('Sensibilidade e cores','Configure os seis estágios e selecione qual deseja usar.'),'lighting':('Iluminação','Escolha o efeito, a velocidade e a cor.'),'profiles':('Perfis de configuração','Salve seus ajustes e escolha quando aplicá-los ao X11.')}
+  headings['macros']=('Botões e macros','Escolha um botão no mapa ou abra o editor para criar sua sequência.')
   self.stack.setCurrentWidget(self.pages[key]);self.heading.setText(headings[key][0]);self.subtitle.setText(headings[key][1])
   for k,b in self.nav.items():b.selected=k==key;b.update()
  def choose_polling(self,hz):
@@ -489,7 +492,8 @@ class ModernApplication(QMainWindow):
   dialog=QDialog(self);dialog.setWindowTitle('Diagnóstico');dialog.resize(760,480);l=column(dialog,20);text=QTextEdit();text.setReadOnly(True);data=json.dumps(self.last_result,ensure_ascii=False,indent=2);text.setPlainText(data);l.addWidget(text);l.addWidget(Button('Copiar diagnóstico',self.theme,lambda:QApplication.clipboard().setText(data)));dialog.exec()
  def closeEvent(self,event):
   if self.busy:self.close_pending=True;self.message.setText('Concluindo a operação antes de fechar…');event.ignore()
-  else:event.accept()
+  elif self.macros.discard():event.accept()
+  else:self.close_pending=False;event.ignore()
 
 
 def launch(backend):
